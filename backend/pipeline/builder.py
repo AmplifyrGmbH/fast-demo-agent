@@ -56,8 +56,8 @@ DESIGN-ANFORDERUNGEN:
 CONTENT-ANFORDERUNGEN:
 - ALLE Inhalte aus dem Bauplan verwenden — kein Platzhalter, kein "Lorem ipsum"
 - Echte Texte, echte Namen, echte Telefonnummern
-- Bewertungen authentisch darstellen (Sterne als ★-Zeichen)
-- Falls Logo vorhanden: im Header einbinden
+- LOGO: Falls plan.logo_url vorhanden → MUSS als <img src="...logo_url..."> im Header eingebunden werden. Kein Emoji, kein Text als Ersatz.
+- HERO: Falls plan.sektionen[hero].hintergrund="gradient" → CSS-Farbverlauf aus Primary Color, KEIN Bild. Falls "bild" → <img> mit object-fit:cover und dunklem Overlay für Lesbarkeit.
 
 STRUKTUR:
 1. <head>: Charset UTF-8, Viewport, Title, Google Fonts Link, <style>

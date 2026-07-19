@@ -18,6 +18,9 @@ def build_analyst_prompt(build: Build) -> str:
 {build.user_prompt}
 """
 
+    logo_url = build.logo_url or ""
+    screenshot_url = build.screenshot_url or ""
+
     return f"""Du bist ein erfahrener Web-Designer und Texter. Du bekommst alle verfügbaren Daten
 einer Unternehmens-Website und sollst daraus einen Bauplan für eine neue, moderne,
 professionelle Website erstellen.
@@ -26,11 +29,14 @@ VERFÜGBARE DATEN:
 === WEBSITE TEXT ===
 {build.scraped_text or ""}
 
-=== BILDER (R2-URLs, bereits gespiegelt) ===
+=== INHALTSBILDER (R2-URLs, bereits gespiegelt) ===
 {images_json}
 
-=== LOGO ===
-{build.logo_url or "kein Logo gefunden"}
+=== SCREENSHOT DER BESTEHENDEN WEBSITE (Querformat 1280x800, als Hero-Fallback nutzbar) ===
+{screenshot_url}
+
+=== LOGO (diese exakte URL verwenden falls vorhanden) ===
+{logo_url or "kein Logo gefunden"}
 
 === PRIMÄRFARBE DER ALTEN WEBSITE ===
 {build.primary_color or "#2563eb"}
@@ -49,6 +55,7 @@ Erstelle einen detaillierten Bauplan als JSON mit folgender Struktur:
     "telefon": "...",
     "email": "..."
   }},
+  "logo_url": "exakte R2-URL des Logos oder null",
   "design": {{
     "stil": "modern-warm | modern-clean | professionell-klassisch | minimalistisch",
     "primary_color": "#hex",
@@ -102,7 +109,9 @@ Erstelle einen detaillierten Bauplan als JSON mit folgender Struktur:
 REGELN:
 - Nur Sektionen einbauen für die genug Content vorhanden ist
 - Fehlende Inhalte (z.B. Leistungsbeschreibungen) SELBST sinnvoll ergänzen
-- Bilder: Jedes Bild nur einmal verwenden, bestes Bild ins Hero
+- logo_url: exakt die Logo-URL aus den Daten übernehmen (nicht verändern), oder null
+- Hero-Bild: Bevorzuge Querformat-Bilder (breiter als hoch). Falls nur Hochformat-Bilder vorhanden → setze hintergrund="gradient" und bild_url=null. Der Website-Screenshot kann als Hero-Fallback verwendet werden (er ist Querformat).
+- Bilder: Jedes Bild nur einmal verwenden
 - Primärfarbe beibehalten wenn zeitgemäss, sonst verbessern
 - Antworte NUR mit dem JSON-Objekt, kein anderer Text"""
 

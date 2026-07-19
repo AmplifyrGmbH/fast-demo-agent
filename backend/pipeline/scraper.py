@@ -67,15 +67,32 @@ def find_subpage_links(html: str, base_url: str) -> list[str]:
 
 
 def extract_image_urls(html: str, base_url: str, exclude_url: str | None = None) -> list[str]:
-    """Gibt Bild-URLs zurück, optional Logo-URL ausschliessen."""
+    """Gibt Bild-URLs zurück — src, srcset und data-src werden ausgewertet."""
     soup = BeautifulSoup(html, "html.parser")
     urls = []
-    for img in soup.find_all("img", src=True):
+
+    for img in soup.find_all("img"):
+        candidates = []
+        # src
         src = img.get("src", "")
         if src and not src.startswith("data:"):
-            full_url = urljoin(base_url, src)
+            candidates.append(src)
+        # data-src (lazy loading)
+        data_src = img.get("data-src", "") or img.get("data-lazy-src", "")
+        if data_src and not data_src.startswith("data:"):
+            candidates.append(data_src)
+        # srcset — grösste URL nehmen (letzter Eintrag)
+        srcset = img.get("srcset", "") or img.get("data-srcset", "")
+        if srcset:
+            parts = [p.strip().split()[0] for p in srcset.split(",") if p.strip()]
+            if parts:
+                candidates.append(parts[-1])  # grösste Version
+
+        for c in candidates:
+            full_url = urljoin(base_url, c).split("?")[0]  # Query-Params entfernen
             if full_url.startswith("http") and full_url != exclude_url:
                 urls.append(full_url)
+
     return list(dict.fromkeys(urls))
 
 
