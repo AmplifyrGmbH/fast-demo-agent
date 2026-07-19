@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from models import Build
-from services.claude_client import call_claude
+from services.claude_client import call_claude, MODEL_OPUS
 
 
 def extract_html(response: str) -> str:
@@ -79,7 +79,7 @@ async def run_builder(build_id: int, db: AsyncSession, fix_instructions: str = "
     await db.commit()
 
     prompt = build_builder_prompt(build, fix_instructions)
-    response = await asyncio.to_thread(call_claude, prompt, 8192)
+    response = await asyncio.to_thread(call_claude, prompt, 8192, "", MODEL_OPUS)
     html = extract_html(response)
 
     return html

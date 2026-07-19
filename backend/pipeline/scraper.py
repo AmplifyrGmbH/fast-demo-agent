@@ -11,6 +11,7 @@ from sqlalchemy import select
 from models import Build
 from services import r2_client, screenshot_client
 from config import settings
+from services.claude_client import MODEL_HAIKU
 
 
 def normalize_url(domain: str) -> str:
@@ -114,7 +115,7 @@ def extract_color_from_screenshot(screenshot_bytes: bytes) -> str:
         cl = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
         img_b64 = base64.standard_b64encode(screenshot_bytes).decode("utf-8")
         resp = cl.messages.create(
-            model="claude-sonnet-4-6",
+            model=MODEL_HAIKU,
             max_tokens=50,
             messages=[{
                 "role": "user",

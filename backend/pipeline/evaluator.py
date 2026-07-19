@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from models import Build
-from services.claude_client import call_claude
+from services.claude_client import call_claude, MODEL_HAIKU
 
 
 async def run_evaluator(build_id: int, html: str, db: AsyncSession) -> dict:
@@ -48,7 +48,7 @@ oder
 Sei streng: Antworte nur dann mit ok=true wenn wirklich alles stimmt.
 Antworte NUR mit dem JSON-Objekt."""
 
-    response = await asyncio.to_thread(call_claude, prompt, 2048)
+    response = await asyncio.to_thread(call_claude, prompt, 2048, "", MODEL_HAIKU)
 
     match = re.search(r'\{[\s\S]*\}', response)
     if match:
