@@ -17,6 +17,6 @@ def search_google_maps(query: str, max_results: int = 3) -> list[dict]:
         "reviewsSort": "newest",
         "countryCode": "ch",
     }
-    run = client.actor(ACTOR_ID).call(run_input=run_input)
+    run = client.actor(ACTOR_ID).call(run_input=run_input, timeout_secs=90)
     items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
     return items

@@ -11,16 +11,25 @@ def extract_company_info(scraped_text: str, domain: str) -> tuple[str, str]:
     """Firmenname und Ort aus gescraptem Text extrahieren."""
     lines = scraped_text.split("\n")
 
-    # Firmenname: erste H1 oder erster längerer Text
+    # Firmenname: kürzeste H1 nehmen (max 5 Wörter), sonst Domain
     firmenname = ""
-    for line in lines:
-        if line.startswith("[H1]"):
-            firmenname = line.replace("[H1]", "").strip()
+    h1_candidates = [
+        line.replace("[H1]", "").strip()
+        for line in lines if line.startswith("[H1]")
+    ]
+    # Bevorzuge kürzere H1s (max 5 Wörter = wahrscheinlich Firmenname, nicht Slogan)
+    for candidate in sorted(h1_candidates, key=lambda x: len(x.split())):
+        if 1 <= len(candidate.split()) <= 6:
+            firmenname = candidate
             break
+
     if not firmenname:
         # Aus Domain ableiten
         domain_clean = domain.replace("www.", "").split(".")[0]
         firmenname = domain_clean.replace("-", " ").replace("_", " ").title()
+
+    # Sicherheitsnetz: max 40 Zeichen
+    firmenname = firmenname[:40]
 
     # Ort: Suche nach PLZ-Pattern (Schweizer PLZ: 4-stellig)
     ort = ""
@@ -31,7 +40,7 @@ def extract_company_info(scraped_text: str, domain: str) -> tuple[str, str]:
             ort = match.group(2).strip()
             break
 
-    return firmenname[:80], ort[:50]
+    return firmenname, ort[:50]
 
 
 def is_similar_name(name1: str, name2: str) -> bool:
