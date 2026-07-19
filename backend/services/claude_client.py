@@ -25,7 +25,7 @@ def call_claude(prompt: str, max_tokens: int = 8192, system: str = "",
     if system:
         kwargs["system"] = system
     if extended_output:
-        kwargs["betas"] = ["output-128k-2025-02-19"]
+        kwargs["extra_headers"] = {"anthropic-beta": "output-128k-2025-02-19"}
 
     last_error = None
     for attempt in range(3):
