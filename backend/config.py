@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql+asyncpg://agentuser:agentpass2024@localhost:5432/demodb"
     ANTHROPIC_API_KEY: str = ""
     APIFY_API_TOKEN: str = ""
+    UNSPLASH_ACCESS_KEY: str = ""
     R2_ACCOUNT_ID: str = ""
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""

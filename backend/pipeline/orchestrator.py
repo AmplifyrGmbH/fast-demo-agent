@@ -12,6 +12,7 @@ from pipeline.deployer import deploy
 from services import r2_client
 from services.claude_client import call_claude, MODEL_SONNET
 from pipeline.builder import extract_html
+from services.image_search import fetch_hero_image
 
 
 async def run_full_pipeline(build_id: int) -> None:
@@ -21,7 +22,21 @@ async def run_full_pipeline(build_id: int) -> None:
             build = result.scalar_one()
 
             await scrape_domain(build.domain, build_id, db)
-            await run_analyst(build_id, db)
+            plan = await run_analyst(build_id, db)
+
+            # Unsplash-Fallback: kein passendes Hero-Bild vorhanden?
+            result = await db.execute(select(Build).where(Build.id == build_id))
+            build = result.scalar_one()
+            hero = next((s for s in plan.get("sektionen", []) if s.get("typ") == "hero"), None)
+            if hero and not hero.get("bild_url"):
+                build.status_detail = "Hero-Bild suchen..."
+                await db.commit()
+                r2_url = await fetch_hero_image(plan, build_id)
+                if r2_url:
+                    hero["bild_url"] = r2_url
+                    hero["hintergrund"] = "bild"
+                    build.plan = plan
+                    await db.commit()
 
             html = await run_builder(build_id, db)
 
