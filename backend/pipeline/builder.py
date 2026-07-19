@@ -51,7 +51,7 @@ DESIGN-ANFORDERUNGEN:
 - Bilder als <img src="r2_url"> einbinden mit object-fit: cover
 - Hover-Effekte nur auf Buttons und CTAs — keine komplexen Animationen
 - Smooth Scrolling: html {{ scroll-behavior: smooth; }}
-- Jede Sektion bekommt eine id (z.B. id="leistungen") für Anchor-Navigation
+- Jede Sektion bekommt eine id für Anchor-Navigation — PFLICHT: id="leistungen", id="ueber-uns", id="team", id="kontakt"
 
 CONTENT-ANFORDERUNGEN:
 - ALLE Inhalte aus dem Bauplan verwenden — kein Platzhalter, kein "Lorem ipsum"
