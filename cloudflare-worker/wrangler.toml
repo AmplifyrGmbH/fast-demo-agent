@@ -8,4 +8,4 @@ routes = [
 
 [[r2_buckets]]
 binding = "R2"
-bucket_name = "website-agent-bilder"
+bucket_name = "website-agent"
