@@ -163,16 +163,17 @@ async function submitRefinement() {
   if (!prompt) return alert('Bitte Anpassungswunsch eingeben.');
 
   document.getElementById('refine-btn').disabled = true;
+  const targetId = refineTargetId;
   closeModal();
 
-  await fetch(`${API}/${refineTargetId}/refine`, {
+  await fetch(`${API}/${targetId}/refine`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt }),
   });
 
   showProgress();
-  openWebSocket(refineTargetId);
+  openWebSocket(targetId);
 }
 
 // --- Delete ---
