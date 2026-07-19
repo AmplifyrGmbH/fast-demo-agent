@@ -2,7 +2,6 @@ const API = '/api/v1/builds';
 
 const PHASES = [
   { key: 'scraping',   label: 'Scraping' },
-  { key: 'maps',       label: 'Google Maps' },
   { key: 'analysing',  label: 'Analyse' },
   { key: 'building',   label: 'Build' },
   { key: 'evaluating', label: 'Evaluierung' },

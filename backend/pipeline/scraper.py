@@ -231,7 +231,7 @@ async def scrape_domain(domain: str, build_id: int, db: AsyncSession) -> dict:
     build.logo_url = logo_r2_url
     build.primary_color = primary_color
     build.screenshot_url = screenshot_url
-    build.status = "maps"
+    build.status = "analysing"
     build.status_detail = None
     await db.commit()
 

@@ -5,7 +5,6 @@ from sqlalchemy import select
 from database import AsyncSessionLocal
 from models import Build, BuildVersion
 from pipeline.scraper import scrape_domain
-from pipeline.maps_enricher import enrich_with_maps
 from pipeline.analyst import run_analyst
 from pipeline.builder import run_builder
 from pipeline.evaluator import run_evaluator
@@ -22,7 +21,6 @@ async def run_full_pipeline(build_id: int) -> None:
             build = result.scalar_one()
 
             await scrape_domain(build.domain, build_id, db)
-            await enrich_with_maps(build_id, db)
             await run_analyst(build_id, db)
 
             html = await run_builder(build_id, db)
