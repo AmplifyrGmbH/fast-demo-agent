@@ -18,8 +18,8 @@ async def run_evaluator(build_id: int, html: str, db: AsyncSession) -> dict:
     plan_json = json.dumps(build.plan or {}, ensure_ascii=False, indent=2)
     user_prompt = build.user_prompt or ""
 
-    # HTML kürzen damit es nicht zu gross wird
-    html_excerpt = html[:30000]
+    # HTML kürzen: Anfang (Head/CSS) + Ende (Content) — wichtigste Teile
+    html_excerpt = html[:20000] + ("\n...[gekürzt]...\n" + html[-10000:] if len(html) > 20000 else "")
 
     prompt = f"""Überprüfe folgendes HTML auf Qualität. Antworte NUR mit JSON.
 
@@ -48,7 +48,7 @@ oder
 Sei streng: Antworte nur dann mit ok=true wenn wirklich alles stimmt.
 Antworte NUR mit dem JSON-Objekt."""
 
-    response = await asyncio.to_thread(call_claude, prompt, 1024)
+    response = await asyncio.to_thread(call_claude, prompt, 2048)
 
     match = re.search(r'\{[\s\S]*\}', response)
     if match:

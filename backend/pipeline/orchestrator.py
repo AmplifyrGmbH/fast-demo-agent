@@ -91,7 +91,7 @@ AKTUELLE HTML-DATEI:
 
 Gib NUR die vollständige, angepasste HTML-Datei aus. Kein anderer Text."""
 
-            response = await asyncio.to_thread(call_claude, prompt, 16000)
+            response = await asyncio.to_thread(call_claude, prompt, 8192)
             new_html = extract_html(response)
 
             await deploy(build_id, new_html, db, refinement_prompt=refinement_prompt)

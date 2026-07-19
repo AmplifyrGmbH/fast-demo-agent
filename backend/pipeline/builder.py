@@ -79,7 +79,7 @@ async def run_builder(build_id: int, db: AsyncSession, fix_instructions: str = "
     await db.commit()
 
     prompt = build_builder_prompt(build, fix_instructions)
-    response = await asyncio.to_thread(call_claude, prompt, 16000)
+    response = await asyncio.to_thread(call_claude, prompt, 8192)
     html = extract_html(response)
 
     return html

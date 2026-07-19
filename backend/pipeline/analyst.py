@@ -10,8 +10,6 @@ from services.claude_client import call_claude
 
 def build_analyst_prompt(build: Build) -> str:
     images_json = json.dumps(build.scraped_images or [], ensure_ascii=False, indent=2)
-    maps_json = json.dumps(build.maps_data or {}, ensure_ascii=False, indent=2)
-    maps_found = build.maps_found or False
 
     user_prompt_section = ""
     if build.user_prompt:
@@ -36,9 +34,6 @@ VERFÜGBARE DATEN:
 
 === PRIMÄRFARBE DER ALTEN WEBSITE ===
 {build.primary_color or "#2563eb"}
-
-=== GOOGLE MAPS DATEN (maps_found={maps_found}) ===
-{maps_json}
 
 {user_prompt_section}
 
@@ -93,15 +88,6 @@ Erstelle einen detaillierten Bauplan als JSON mit folgender Struktur:
       ]
     }},
     {{
-      "typ": "bewertungen",
-      "titel": "...",
-      "rating": 4.8,
-      "anzahl": 127,
-      "items": [
-        {{"autor": "...", "sterne": 5, "text": "..."}}
-      ]
-    }},
-    {{
       "typ": "kontakt",
       "titel": "...",
       "adresse": "...",
@@ -115,7 +101,6 @@ Erstelle einen detaillierten Bauplan als JSON mit folgender Struktur:
 
 REGELN:
 - Nur Sektionen einbauen für die genug Content vorhanden ist
-- Bewertungen-Sektion NUR wenn maps_found=true und Bewertungen vorhanden
 - Fehlende Inhalte (z.B. Leistungsbeschreibungen) SELBST sinnvoll ergänzen
 - Bilder: Jedes Bild nur einmal verwenden, bestes Bild ins Hero
 - Primärfarbe beibehalten wenn zeitgemäss, sonst verbessern

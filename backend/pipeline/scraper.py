@@ -1,6 +1,8 @@
 import re
 import asyncio
+import base64
 import aiohttp
+import anthropic
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +10,7 @@ from sqlalchemy import select
 
 from models import Build
 from services import r2_client, screenshot_client
-from services.claude_client import call_claude
+from config import settings
 
 
 def normalize_url(domain: str) -> str:
@@ -23,7 +25,7 @@ def clean_html_to_text(html: str) -> str:
         tag.decompose()
 
     lines = []
-    for el in soup.find_all(["h1", "h2", "h3", "h4", "p", "li", "span", "div", "a"]):
+    for el in soup.find_all(["h1", "h2", "h3", "h4", "p", "li"]):
         text = el.get_text(separator=" ", strip=True)
         if len(text) > 20:
             tag_name = el.name
@@ -48,28 +50,30 @@ def find_subpage_links(html: str, base_url: str) -> list[str]:
                  "about", "kontakt", "contact", "angebot", "behandlung"]
     links = set()
     base_domain = urlparse(base_url).netloc
+    base_path = base_url.rstrip("/")
 
     for a in soup.find_all("a", href=True):
         href = a.get("href", "")
         text = (a.get_text() + " " + href).lower()
         if any(kw in text for kw in keywords):
-            full_url = urljoin(base_url, href)
+            full_url = urljoin(base_url, href).rstrip("/")
             parsed = urlparse(full_url)
             if parsed.netloc == base_domain and parsed.scheme in ["http", "https"]:
-                if full_url != base_url:
+                if full_url != base_path:
                     links.add(full_url)
 
     return list(links)[:4]
 
 
-def extract_image_urls(html: str, base_url: str) -> list[str]:
+def extract_image_urls(html: str, base_url: str, exclude_url: str | None = None) -> list[str]:
+    """Gibt Bild-URLs zurück, optional Logo-URL ausschliessen."""
     soup = BeautifulSoup(html, "html.parser")
     urls = []
     for img in soup.find_all("img", src=True):
         src = img.get("src", "")
         if src and not src.startswith("data:"):
             full_url = urljoin(base_url, src)
-            if full_url.startswith("http"):
+            if full_url.startswith("http") and full_url != exclude_url:
                 urls.append(full_url)
     return list(dict.fromkeys(urls))
 
@@ -80,7 +84,7 @@ def find_logo_url(html: str, base_url: str) -> str | None:
         attrs = " ".join([
             img.get("src", ""),
             img.get("alt", ""),
-            img.get("class", [""])[0] if img.get("class") else "",
+            " ".join(img.get("class", [])),
             img.get("id", ""),
         ]).lower()
         if "logo" in attrs:
@@ -95,21 +99,50 @@ def extract_primary_color(html: str) -> str | None:
         r'(?:nav|header|\.navbar|\.header|button)[^{]*\{[^}]*background(?:-color)?\s*:\s*(#[0-9a-fA-F]{3,6})',
         r'background(?:-color)?\s*:\s*(#[0-9a-fA-F]{6})',
     ]
+    neutral = {"#fff", "#ffffff", "#000", "#000000", "#f5f5f5",
+               "#fafafa", "#eeeeee", "#e5e5e5", "#f0f0f0", "#f9f9f9"}
     for pattern in patterns:
-        matches = re.findall(pattern, html, re.IGNORECASE)
-        for color in matches:
-            lower = color.lower()
-            if lower not in ["#fff", "#ffffff", "#000", "#000000", "#f5f5f5",
-                              "#fafafa", "#eeeeee", "#e5e5e5", "#f0f0f0"]:
+        for color in re.findall(pattern, html, re.IGNORECASE):
+            if color.lower() not in neutral:
                 return color
     return None
+
+
+def extract_color_from_screenshot(screenshot_bytes: bytes) -> str:
+    """Fragt Claude per Vision nach der dominanten Brandfarbe."""
+    try:
+        cl = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        img_b64 = base64.standard_b64encode(screenshot_bytes).decode("utf-8")
+        resp = cl.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=50,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": img_b64}},
+                    {"type": "text", "text": (
+                        "Analysiere diesen Website-Screenshot. Nenne nur den Hex-Code der dominanten "
+                        "Brandfarbe. Ignoriere Weiss, Grau, Schwarz. Antworte nur mit dem Hex-Code, z.B. #2563eb"
+                    )},
+                ]
+            }]
+        )
+        match = re.search(r"#[0-9a-fA-F]{3,6}", resp.content[0].text.strip())
+        if match:
+            return match.group(0)
+    except Exception:
+        pass
+    return "#2563eb"
 
 
 async def download_image(session: aiohttp.ClientSession, url: str) -> bytes | None:
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
             if resp.status == 200 and "image" in resp.headers.get("Content-Type", ""):
-                return await resp.read()
+                data = await resp.read()
+                # Mindestgrösse 5KB — filtert Icons und Tracking-Pixel
+                if len(data) >= 5000:
+                    return data
     except Exception:
         pass
     return None
@@ -124,18 +157,20 @@ async def scrape_domain(domain: str, build_id: int, db: AsyncSession) -> dict:
 
     base_url = normalize_url(domain)
 
-    # Screenshot + HTML der Hauptseite
-    screenshot_bytes = await screenshot_client.take_screenshot(base_url)
-    main_html = await screenshot_client.get_page_html(base_url)
+    # Screenshot + HTML in einer einzigen Browser-Session
+    screenshot_bytes, main_html = await screenshot_client.scrape_page(base_url)
 
     # Screenshot nach R2
     screenshot_r2_key = f"demos/{build_id}/screenshot.jpg"
     screenshot_url = r2_client.upload_bytes(screenshot_bytes, screenshot_r2_key, "image/jpeg")
 
+    # Logo finden (vor Bilder-Extraktion, damit es ausgeschlossen werden kann)
+    logo_orig = find_logo_url(main_html, base_url)
+
     # Text extrahieren
     main_text = clean_html_to_text(main_html)
 
-    # Unterseiten
+    # Unterseiten laden
     subpage_urls = find_subpage_links(main_html, base_url)
     build.status_detail = f"Unterseiten laden ({len(subpage_urls)})..."
     await db.commit()
@@ -150,8 +185,8 @@ async def scrape_domain(domain: str, build_id: int, db: AsyncSession) -> dict:
 
     main_text = main_text[:15000]
 
-    # Bilder
-    all_image_urls = extract_image_urls(main_html, base_url)
+    # Bilder herunterladen (Logo ausschliessen)
+    all_image_urls = extract_image_urls(main_html, base_url, exclude_url=logo_orig)
     build.status_detail = "Bilder herunterladen..."
     await db.commit()
 
@@ -177,9 +212,8 @@ async def scrape_domain(domain: str, build_id: int, db: AsyncSession) -> dict:
         except Exception:
             pass
 
-    # Logo
+    # Logo hochladen
     logo_r2_url = None
-    logo_orig = find_logo_url(main_html, base_url)
     if logo_orig:
         async with aiohttp.ClientSession() as session:
             logo_bytes = await download_image(session, logo_orig)
@@ -191,39 +225,10 @@ async def scrape_domain(domain: str, build_id: int, db: AsyncSession) -> dict:
             except Exception:
                 pass
 
-    # Primärfarbe
+    # Primärfarbe: erst CSS-Regex, dann Claude Vision als Fallback
     primary_color = extract_primary_color(main_html)
     if not primary_color:
-        try:
-            color_prompt = (
-                "Analysiere diesen Website-Screenshot. Nenne nur den Hex-Code der dominanten "
-                "Brandfarbe. Ignoriere Weiss, Grau, Schwarz. Antworte nur mit dem Hex-Code, z.B. #2563eb"
-            )
-            import anthropic as ant
-            from config import settings as cfg
-            cl = ant.Anthropic(api_key=cfg.ANTHROPIC_API_KEY)
-            import base64
-            img_b64 = base64.standard_b64encode(screenshot_bytes).decode("utf-8")
-            resp = cl.messages.create(
-                model="claude-sonnet-4-6",
-                max_tokens=50,
-                messages=[{
-                    "role": "user",
-                    "content": [
-                        {"type": "image", "source": {"type": "base64", "media_type": "image/jpeg", "data": img_b64}},
-                        {"type": "text", "text": color_prompt},
-                    ]
-                }]
-            )
-            color_text = resp.content[0].text.strip()
-            match = re.search(r"#[0-9a-fA-F]{3,6}", color_text)
-            if match:
-                primary_color = match.group(0)
-        except Exception:
-            primary_color = "#2563eb"
-
-    if not primary_color:
-        primary_color = "#2563eb"
+        primary_color = extract_color_from_screenshot(screenshot_bytes)
 
     # DB aktualisieren
     build.scraped_text = main_text
