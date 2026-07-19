@@ -1,0 +1,11 @@
+name = "fastdemo-worker"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+routes = [
+  { pattern = "deine-neue-website.ch/*", zone_name = "deine-neue-website.ch" }
+]
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "website-agent-bilder"

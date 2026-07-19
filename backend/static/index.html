@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastDemo Builder</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="header">
+  <div class="container" style="padding-top:0; padding-bottom:0;">
+    <h1>FastDemo Builder</h1>
+    <p>Amplifyr Digital — Demo-Website in 2–5 Minuten</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Generate Form -->
+  <div class="card">
+    <div class="card-title">Neue Demo generieren</div>
+    <div class="form-group">
+      <label for="domain">Domain</label>
+      <input type="text" id="domain" placeholder="muster-zahnarzt.ch" autocomplete="off" autocapitalize="none">
+    </div>
+    <div class="form-group">
+      <label for="user_prompt">Anweisung <span style="font-weight:400;color:#9ca3af">(optional)</span></label>
+      <textarea id="user_prompt" placeholder="z.B. Moderner Look, warme Farben, Fokus auf Kinderzahnheilkunde"></textarea>
+    </div>
+    <button id="generate-btn" class="btn btn-primary">Demo generieren</button>
+  </div>
+
+  <!-- Progress -->
+  <div class="card progress-card" id="progress-card">
+    <div class="card-title">Fortschritt</div>
+    <ul class="phase-list" id="phase-list"></ul>
+    <div class="status-detail" id="status-detail"></div>
+    <div class="result-link" id="result-link"></div>
+  </div>
+
+  <!-- Builds List -->
+  <div class="card">
+    <div class="card-title">Letzte Demos</div>
+    <div id="builds-list">
+      <div class="empty-state">Laden...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Refine Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">Demo anpassen — <span id="modal-domain"></span></div>
+    <div class="form-group">
+      <label for="refine-prompt">Anpassungswunsch</label>
+      <textarea id="refine-prompt" placeholder='z.B. "Hero-Bild austauschen", "Farbe blauer", "Leistungen prominenter"' style="min-height:100px"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button id="modal-cancel" class="btn btn-outline">Abbrechen</button>
+      <button id="refine-btn" class="btn btn-primary">Anpassen starten</button>
+    </div>
+  </div>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
