@@ -10,7 +10,7 @@ from pipeline.builder import run_builder
 from pipeline.evaluator import run_evaluator
 from pipeline.deployer import deploy
 from services import r2_client
-from services.claude_client import call_claude
+from services.claude_client import call_claude, MODEL_SONNET
 from pipeline.builder import extract_html
 
 
@@ -91,7 +91,7 @@ AKTUELLE HTML-DATEI:
 
 Gib NUR die vollständige, angepasste HTML-Datei aus. Kein anderer Text."""
 
-            response = await asyncio.to_thread(call_claude, prompt, 8192)
+            response = await asyncio.to_thread(call_claude, prompt, 16000, "", MODEL_SONNET, True)
             new_html = extract_html(response)
 
             await deploy(build_id, new_html, db, refinement_prompt=refinement_prompt)

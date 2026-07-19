@@ -11,7 +11,7 @@ MODEL_HAIKU = "claude-haiku-4-5-20251001"  # Evaluator, Farberkennung: einfache 
 
 
 def call_claude(prompt: str, max_tokens: int = 8192, system: str = "",
-                model: str = MODEL_SONNET) -> str:
+                model: str = MODEL_SONNET, extended_output: bool = False) -> str:
     """
     Synchroner Wrapper um den Anthropic Client.
     Aus async-Funktionen immer via asyncio.to_thread() aufrufen.
@@ -24,6 +24,8 @@ def call_claude(prompt: str, max_tokens: int = 8192, system: str = "",
     }
     if system:
         kwargs["system"] = system
+    if extended_output:
+        kwargs["betas"] = ["output-128k-2025-02-19"]
 
     last_error = None
     for attempt in range(3):

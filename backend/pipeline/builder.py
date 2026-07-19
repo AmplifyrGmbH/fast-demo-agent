@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from models import Build
-from services.claude_client import call_claude, MODEL_OPUS
+from services.claude_client import call_claude, MODEL_OPUS, MODEL_SONNET
 
 
 def extract_html(response: str) -> str:
@@ -36,12 +36,12 @@ BAUPLAN:
 {fix_section}
 
 TECHNISCHE ANFORDERUNGEN:
-- Vollständiges, valides HTML5 mit <!DOCTYPE html>
+- Vollständiges, valides HTML5 mit <!DOCTYPE html> — die Datei MUSS mit </html> enden
 - Gesamter CSS im <style>-Tag (kein externes Stylesheet)
+- CSS KOMPAKT halten: max. 250 Zeilen, nur das Notwendige — kein Over-Engineering
 - Google Fonts via <link> einbinden (die im Bauplan definierten Fonts)
-- Vollständig responsive: Mobile-first, Breakpoints bei 768px und 1200px
-- Smooth-scroll Navigation mit Anchor-Links
-- Mobile Hamburger-Menu (reines CSS oder minimales JS)
+- Vollständig responsive: Mobile-first, ein Breakpoint bei 768px genügt
+- Mobile Hamburger-Menu (minimales JS, max. 20 Zeilen)
 - Kein jQuery, kein CSS-Framework (kein Bootstrap/Tailwind)
 - Keine externen Abhängigkeiten ausser Google Fonts
 
@@ -49,7 +49,7 @@ DESIGN-ANFORDERUNGEN:
 - Modernes, professionelles Design — viel Weissraum, klare Typographie
 - Die Primärfarbe aus dem Bauplan konsequent einsetzen (Buttons, Akzente, Header)
 - Bilder als <img src="r2_url"> einbinden mit object-fit: cover
-- Hover-Effekte auf Buttons und interaktiven Elementen
+- Hover-Effekte nur auf Buttons und CTAs — keine komplexen Animationen
 - Smooth Scrolling: html {{ scroll-behavior: smooth; }}
 - Jede Sektion bekommt eine id (z.B. id="leistungen") für Anchor-Navigation
 
@@ -79,7 +79,7 @@ async def run_builder(build_id: int, db: AsyncSession, fix_instructions: str = "
     await db.commit()
 
     prompt = build_builder_prompt(build, fix_instructions)
-    response = await asyncio.to_thread(call_claude, prompt, 8192, "", MODEL_OPUS)
+    response = await asyncio.to_thread(call_claude, prompt, 16000, "", MODEL_OPUS, True)
     html = extract_html(response)
 
     return html
