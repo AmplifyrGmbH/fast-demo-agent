@@ -24,24 +24,25 @@ async def run_full_pipeline(build_id: int) -> None:
             await scrape_domain(build.domain, build_id, db)
             plan = await run_analyst(build_id, db)
 
-            # Unsplash-Fallback: kein passendes Hero-Bild vorhanden?
+            # Hero-Bild + Content-Bilder parallel prüfen/besorgen
             result = await db.execute(select(Build).where(Build.id == build_id))
             build = result.scalar_one()
-            hero = next((s for s in plan.get("sektionen", []) if s.get("typ") == "hero"), None)
-            if hero and not hero.get("bild_url"):
-                build.status_detail = "Hero-Bild suchen..."
-                await db.commit()
-                r2_url = await fetch_hero_image(plan, build_id)
-                if r2_url:
-                    hero["bild_url"] = r2_url
-                    hero["hintergrund"] = "bild"
-                    build.plan = plan
-                    await db.commit()
-
-            # Content-Bilder auf Themenpassung prüfen, nicht passende → Unsplash
-            build.status_detail = "Bilder prüfen..."
+            build.status_detail = "Bilder prüfen und optimieren..."
             await db.commit()
-            plan = await validate_and_replace_images(plan, build.scraped_images or [], build_id)
+
+            hero = next((s for s in plan.get("sektionen", []) if s.get("typ") == "hero"), None)
+            needs_hero = hero and not hero.get("bild_url")
+            scraped_images = build.scraped_images or []
+
+            hero_task = fetch_hero_image(plan, build_id) if needs_hero else asyncio.sleep(0)
+            content_task = validate_and_replace_images(plan, scraped_images, build_id)
+
+            hero_result, plan = await asyncio.gather(hero_task, content_task)
+
+            if needs_hero and hero_result:
+                hero["bild_url"] = hero_result
+                hero["hintergrund"] = "bild"
+
             build.plan = plan
             await db.commit()
 
@@ -115,6 +116,26 @@ Gib NUR die vollständige, angepasste HTML-Datei aus. Kein anderer Text."""
 
             response = await asyncio.to_thread(call_claude, prompt, 16000, "", MODEL_SONNET, True)
             new_html = extract_html(response)
+
+            # Qualitäts-Check nach Refinement
+            eval_result = await run_evaluator(build_id, new_html, db)
+            if not eval_result.get("ok"):
+                fixes = "\n".join(eval_result.get("fixes", []))
+                fix_prompt = f"""Du bekommst eine HTML-Website die nach einem Refinement kleine Probleme hat.
+Behebe NUR die gemeldeten Probleme, ändere nichts anderes.
+
+ORIGINALER BAUPLAN:
+{plan_json}
+
+PROBLEME ZU BEHEBEN:
+{fixes}
+
+AKTUELLE HTML-DATEI:
+{new_html}
+
+Gib NUR die vollständige, korrigierte HTML-Datei aus. Kein anderer Text."""
+                fix_response = await asyncio.to_thread(call_claude, fix_prompt, 16000, "", MODEL_SONNET, True)
+                new_html = extract_html(fix_response)
 
             await deploy(build_id, new_html, db, refinement_prompt=refinement_prompt)
 
