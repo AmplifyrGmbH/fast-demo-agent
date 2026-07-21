@@ -110,6 +110,10 @@ BILDER: {bild_hinweis}
 14. Footer vorhanden mit Firmeninfos?
 15. Hero-Sektion sauber? NUR Headline, Subtext, CTA — keine Öffnungszeiten, Kontaktdaten oder anderen Sektionsinhalte im Hero?
 16. Kein Website-Screenshot als Hero-Hintergrundbild verwendet? (Screenshot-URLs enthalten oft "screenshot.jpg" — das ist verboten)
+17. Hero min-height:100vh (oder 88vh mobile) gesetzt?
+18. Hero-Bild hat Overlay (rgba(0,0,0,...))? Text muss auf jedem Bild lesbar sein.
+19. Mobile: @media (max-width:767px) oder Mobile-first CSS vorhanden? Cards stacken auf 1 Spalte?
+20. Hero H1 font-size auf Mobile reduziert (max. 2.5rem)?
 
 ━━━ BILDQUALITÄT (falls Bilder beigefügt) ━━━
 15. Hero-Bild: Querformat, professionell, thematisch passend zur Branche?

@@ -96,12 +96,47 @@ light: #f8fafc (oder stilpassend: #fef9f5 bei warm, etc.)
 primary: Primärfarbe aus plan — helle Schrift
 dark: #0f172a oder ähnlich — weisse Schrift
 
+━━━ HERO (PFLICHT-QUALITÄT — hier entscheidet sich der erste Eindruck) ━━━
+- position:relative, min-height:100vh, display:flex, flex-direction:column,
+  align-items:center, justify-content:center, text-align:center, overflow:hidden
+- hintergrund="bild": <img> mit position:absolute, inset:0, width:100%, height:100%,
+  object-fit:cover, z-index:0 — PFLICHT: Overlay-div position:absolute, inset:0,
+  background:rgba(0,0,0,0.52), z-index:1 — Text-Container z-index:2
+- hintergrund="gradient": background:linear-gradient(135deg, [primary] 0%, [primary-20%dunkler] 100%)
+  Keine Bild-Tags. Helle Schrift auf dem Gradient.
+- hintergrund="dark": background:#0f172a, helle Schrift, Primärfarbe als Akzent-Element
+- Hero-Inhalt: H1 min. 3.5rem, font-weight:800, line-height:1.15, max-width:800px
+  Subtext: font-size:1.15rem, max-width:580px, opacity:0.92, margin:1.5rem auto
+  CTA-Button: display:inline-block, padding:18px 48px, font-size:1.1rem,
+  font-weight:700, border-radius per plan.design.button_style — muss auf dem Hero-BG kontrastieren
+- VERBOTEN im Hero: Logo als grosses Element, Öffnungszeiten, Kontaktdaten,
+  Leistungslisten, Website-Screenshot als Bild
+
+━━━ MOBILE (PFLICHT — wird auf dem Smartphone geprüft) ━━━
+Basis (Mobile-first, gilt ohne @media):
+  - Section-Padding: 64px 20px
+  - Font-Size body: 16px
+  - Bilder: max-width:100%, height:auto
+  - Grid: standardmässig 1 Spalte
+
+@media (min-width: 768px) — Tablet/Desktop-Erweiterungen:
+  - Section-Padding: 100px 40px
+  - Hero H1: 3.5rem+ (Mobile-Basis: 2.2rem)
+  - cards-3: grid-template-columns: repeat(3, 1fr)
+  - cards-4: grid-template-columns: repeat(4, 1fr) → auf Tablet repeat(2,1fr)
+  - image-left/right: display:flex, gap:60px, align-items:center (Mobile: block, Bild oben)
+  - Nav-Links sichtbar, Hamburger versteckt (display:none)
+
+Mobile-spezifisch (@media max-width:767px):
+  - Hero: min-height:88vh | H1: 2.2rem | Subtext: 0.95rem | CTA: padding:14px 32px
+  - cards-4: grid-template-columns: repeat(2,1fr)
+  - Header: kompakter (padding:12px 20px)
+  - Hamburger: sichtbar — Nav-Links als Dropdown (position:absolute, full-width)
+
 ━━━ CONTENT-ANFORDERUNGEN ━━━
 - ALLE Inhalte aus dem Bauplan — kein Platzhalter, kein Lorem ipsum
 - Echte Texte, Namen, Telefonnummern, Adressen
-- LOGO: plan.logo_url vorhanden → <img src="logo_url"> im Header. Kein Emoji-Ersatz.
-- HERO hintergrund="gradient" → CSS-Gradient aus Primary. "dark" → #0f172a + helle Schrift. "bild" → <img> mit overlay (rgba(0,0,0,.45)).
-- HERO-SEKTION enthält NUR: Hintergrundbild/Gradient, Headline, Subtext, CTA-Button. KEINE anderen Inhalte (keine Öffnungszeiten, keine Kontaktdaten, keine Leistungslisten, kein Logo gross im Hero).
+- LOGO: plan.logo_url vorhanden → <img src="logo_url"> im Header, max-height:50px. Kein Emoji-Ersatz.
 - Leistungs-Emojis gross und als echte visuelle Akzente einsetzen (font-size:2.5rem)
 
 ━━━ ANIMATIONEN ━━━
@@ -115,8 +150,8 @@ dark: #0f172a oder ähnlich — weisse Schrift
 
 ━━━ STRUKTUR ━━━
 1. <head>: Charset, Viewport, Title, Google Fonts Link, <style>
-2. <header>: Logo + Firmenname, Nav mit Anchor-Links, Hamburger Mobile — scrollt mit (sticky)
-3. <main>: Sektionen aus Bauplan, jede mit class="fade-in"
+2. <header>: Logo + Firmenname, Nav mit Anchor-Links, Hamburger Mobile — sticky
+3. <main>: Hero zuerst, dann Sektionen aus Bauplan — jede mit class="fade-in"
 4. <footer>: Firmenname, Adresse, Telefon, Copyright — dunkler Hintergrund
 PFLICHT-IDs: id="leistungen", id="ueber-uns", id="team", id="kontakt"
 
