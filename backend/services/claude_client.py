@@ -10,6 +10,38 @@ MODEL_SONNET = "claude-sonnet-4-6"  # Analyst, Refinement: strukturiertes Reason
 MODEL_HAIKU = "claude-haiku-4-5-20251001"  # Evaluator, Farberkennung: einfache Aufgaben
 
 
+def call_claude_multimodal(prompt: str, images_b64: list[tuple[str, str]],
+                           max_tokens: int = 4096, model: str = MODEL_SONNET) -> str:
+    """
+    Multimodaler Claude-Call mit Bildern.
+    images_b64: Liste von (base64_data, media_type) — z.B. ("...", "image/jpeg")
+    Aus async-Funktionen immer via asyncio.to_thread() aufrufen.
+    """
+    content = []
+    for b64_data, media_type in images_b64:
+        content.append({
+            "type": "image",
+            "source": {"type": "base64", "media_type": media_type, "data": b64_data},
+        })
+    content.append({"type": "text", "text": prompt})
+
+    last_error = None
+    for attempt in range(3):
+        try:
+            response = client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": content}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            last_error = e
+            if attempt < 2:
+                time.sleep(5)
+
+    raise RuntimeError(f"Claude Multimodal Fehler nach 3 Versuchen: {last_error}")
+
+
 def call_claude(prompt: str, max_tokens: int = 8192, system: str = "",
                 model: str = MODEL_SONNET, extended_output: bool = False) -> str:
     """
