@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     APIFY_API_TOKEN: str = ""
     UNSPLASH_ACCESS_KEY: str = ""
+    JINA_API_KEY: str = ""
     R2_ACCOUNT_ID: str = ""
     R2_ACCESS_KEY_ID: str = ""
     R2_SECRET_ACCESS_KEY: str = ""

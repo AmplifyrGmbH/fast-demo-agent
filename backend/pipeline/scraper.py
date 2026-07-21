@@ -14,6 +14,35 @@ from config import settings
 from services.claude_client import MODEL_HAIKU
 
 
+async def jina_get_text(url: str, fallback_html: str = "") -> str:
+    """
+    Holt sauberen Markdown-Text via Jina Reader (r.jina.ai).
+    Fallback auf clean_html_to_text() falls Jina nicht erreichbar ist.
+    """
+    headers = {"Accept": "text/plain", "X-No-Cache": "true"}
+    if settings.JINA_API_KEY:
+        headers["Authorization"] = f"Bearer {settings.JINA_API_KEY}"
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                f"https://r.jina.ai/{url}",
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=30),
+            ) as resp:
+                if resp.status == 200:
+                    text = await resp.text()
+                    # Jina fügt Metadaten-Header ein — ab "=" Linien wegschneiden
+                    lines = text.splitlines()
+                    content_lines = [l for l in lines if not l.startswith("URL Source:") and not l.startswith("Title:")]
+                    return "\n".join(content_lines).strip()
+    except Exception:
+        pass
+
+    # Fallback
+    return clean_html_to_text(fallback_html) if fallback_html else ""
+
+
 def normalize_url(domain: str) -> str:
     if not domain.startswith("http"):
         domain = "https://" + domain
@@ -185,21 +214,27 @@ async def scrape_domain(domain: str, build_id: int, db: AsyncSession) -> dict:
     # Logo finden (vor Bilder-Extraktion, damit es ausgeschlossen werden kann)
     logo_orig = find_logo_url(main_html, base_url)
 
-    # Text extrahieren
-    main_text = clean_html_to_text(main_html)
-
-    # Unterseiten laden
+    # Unterseiten-URLs aus HTML ermitteln
     subpage_urls = find_subpage_links(main_html, base_url)
-    build.status_detail = f"Unterseiten laden ({len(subpage_urls)})..."
+
+    # Text: Hauptseite + Unterseiten parallel via Jina Reader
+    build.status_detail = f"Texte extrahieren ({1 + len(subpage_urls)} Seiten)..."
     await db.commit()
 
-    for sub_url in subpage_urls:
-        try:
-            sub_html = await screenshot_client.get_page_html(sub_url)
-            sub_text = clean_html_to_text(sub_html)
-            main_text += f"\n\n--- Unterseite: {sub_url} ---\n" + sub_text
-        except Exception:
-            pass
+    all_urls = [base_url] + subpage_urls
+    jina_results = await asyncio.gather(
+        *[jina_get_text(url, main_html if url == base_url else "") for url in all_urls],
+        return_exceptions=True,
+    )
+
+    main_text = ""
+    for url, result in zip(all_urls, jina_results):
+        if isinstance(result, Exception) or not result:
+            continue
+        if url == base_url:
+            main_text = result
+        else:
+            main_text += f"\n\n--- Unterseite: {url} ---\n{result}"
 
     main_text = main_text[:15000]
 
