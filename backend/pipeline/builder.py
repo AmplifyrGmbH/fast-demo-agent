@@ -101,6 +101,7 @@ dark: #0f172a oder ähnlich — weisse Schrift
 - Echte Texte, Namen, Telefonnummern, Adressen
 - LOGO: plan.logo_url vorhanden → <img src="logo_url"> im Header. Kein Emoji-Ersatz.
 - HERO hintergrund="gradient" → CSS-Gradient aus Primary. "dark" → #0f172a + helle Schrift. "bild" → <img> mit overlay (rgba(0,0,0,.45)).
+- HERO-SEKTION enthält NUR: Hintergrundbild/Gradient, Headline, Subtext, CTA-Button. KEINE anderen Inhalte (keine Öffnungszeiten, keine Kontaktdaten, keine Leistungslisten, kein Logo gross im Hero).
 - Leistungs-Emojis gross und als echte visuelle Akzente einsetzen (font-size:2.5rem)
 
 ━━━ ANIMATIONEN ━━━

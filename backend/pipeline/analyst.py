@@ -32,7 +32,7 @@ VERFÜGBARE DATEN:
 === INHALTSBILDER (R2-URLs, bereits gespiegelt) ===
 {images_json}
 
-=== SCREENSHOT DER BESTEHENDEN WEBSITE (Querformat 1280x800, als Hero-Fallback nutzbar) ===
+=== SCREENSHOT DER BESTEHENDEN WEBSITE (nur zur Referenz — NICHT als Hero-Bild verwenden) ===
 {screenshot_url}
 
 === LOGO (diese exakte URL verwenden falls vorhanden) ===
@@ -139,7 +139,7 @@ REGELN:
 - Nur Sektionen einbauen für die genug Content vorhanden ist
 - Fehlende Inhalte SELBST sinnvoll ergänzen — nie Platzhalter
 - logo_url: exakt die Logo-URL übernehmen (nicht verändern), oder null
-- Hero: Querformat-Bilder bevorzugen. Nur Hochformat → hintergrund="gradient". Screenshot als Fallback nutzbar.
+- Hero: Querformat-Bilder bevorzugen. Kein passendes Bild vorhanden → hintergrund="gradient", bild_url=null. Der Screenshot darf NIEMALS als Hero-Bild verwendet werden.
 - section_bg variieren — nie weiss-weiss oder gleiche Farbe zweimal hintereinander
 - Bilder: Jedes Bild nur einmal verwenden
 - Tagline und Headline: konkret und einprägsam, nicht generisch
