@@ -12,7 +12,7 @@ from pipeline.deployer import deploy
 from services import r2_client
 from services.claude_client import call_claude, MODEL_SONNET
 from pipeline.builder import extract_html
-from services.image_search import fetch_hero_image
+from services.image_search import fetch_hero_image, validate_and_replace_images
 
 
 async def run_full_pipeline(build_id: int) -> None:
@@ -37,6 +37,13 @@ async def run_full_pipeline(build_id: int) -> None:
                     hero["hintergrund"] = "bild"
                     build.plan = plan
                     await db.commit()
+
+            # Content-Bilder auf Themenpassung prüfen, nicht passende → Unsplash
+            build.status_detail = "Bilder prüfen..."
+            await db.commit()
+            plan = await validate_and_replace_images(plan, build.scraped_images or [], build_id)
+            build.plan = plan
+            await db.commit()
 
             html = await run_builder(build_id, db)
 

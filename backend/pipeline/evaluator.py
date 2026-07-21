@@ -113,6 +113,7 @@ BILDER: {bild_hinweis}
 15. Hero-Bild: Querformat, professionell, thematisch passend zur Branche?
 16. Bilder allgemein: gut beleuchtet, scharf, nicht pixelig?
 17. Kein offensichtliches Qualitätsproblem (zu dunkel, zu klein, falsches Sujet)?
+18. Passen die Bilder inhaltlich zum Unternehmen und zur Branche? (z.B. kein Bürobild bei Zahnarzt, kein Fabrikbild bei Restaurant)
 
 Antwortformat:
 {{"ok": true}}
