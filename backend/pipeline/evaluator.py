@@ -99,6 +99,8 @@ BILDER: {bild_hinweis}
 5. PFLICHT-IDs vorhanden? (id="leistungen", id="ueber-uns", id="kontakt")
 6. Logo korrekt eingebunden falls plan.logo_url vorhanden?
 7. User-Prompt-Anforderungen erfüllt (falls vorhanden)?
+8. <meta name="description"> vorhanden und sinnvoll befüllt?
+9. Kontaktformular vorhanden (Felder: Name, E-Mail, Nachricht, Absenden-Button)?
 
 ━━━ DESIGN-QUALITÄT ━━━
 8. section_bg abwechselnd? (nie zweimal dieselbe Hintergrundfarbe direkt hintereinander)
@@ -116,10 +118,10 @@ BILDER: {bild_hinweis}
 20. Hero H1 font-size auf Mobile reduziert (max. 2.5rem)?
 
 ━━━ BILDQUALITÄT (falls Bilder beigefügt) ━━━
-15. Hero-Bild: Querformat, professionell, thematisch passend zur Branche?
-16. Bilder allgemein: gut beleuchtet, scharf, nicht pixelig?
-17. Kein offensichtliches Qualitätsproblem (zu dunkel, zu klein, falsches Sujet)?
-18. Passen die Bilder inhaltlich zum Unternehmen und zur Branche? (z.B. kein Bürobild bei Zahnarzt, kein Fabrikbild bei Restaurant)
+21. Hero-Bild: Querformat, professionell, thematisch passend zur Branche?
+22. Bilder allgemein: gut beleuchtet, scharf, nicht pixelig?
+23. Kein offensichtliches Qualitätsproblem (zu dunkel, zu klein, falsches Sujet)?
+24. Passen die Bilder inhaltlich zum Unternehmen und zur Branche? (z.B. kein Bürobild bei Zahnarzt, kein Fabrikbild bei Restaurant)
 
 Antwortformat:
 {{"ok": true}}

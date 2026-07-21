@@ -153,7 +153,7 @@ async def run_analyst(build_id: int, db: AsyncSession) -> dict:
     await db.commit()
 
     prompt = build_analyst_prompt(build)
-    response = await asyncio.to_thread(call_claude, prompt, 4096)
+    response = await asyncio.to_thread(call_claude, prompt, 8192)
 
     # JSON aus Response extrahieren
     match = re.search(r'\{[\s\S]*\}', response)

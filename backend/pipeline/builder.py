@@ -148,8 +148,26 @@ Mobile-spezifisch (@media max-width:767px):
 - Hover auf Buttons: leichte Aufhellung + leichter Schatten
 - Header: beim Scrollen leicht verkleinern (scrolled-Klasse via JS) — subtil
 
+━━━ SEO & META ━━━
+Im <head> PFLICHT:
+- <meta name="description" content="[2 Sätze: Firma + Hauptleistung + Ort]">
+- <meta property="og:title" content="[Firmenname]">
+- <meta property="og:description" content="[gleich wie description]">
+- <meta property="og:type" content="website">
+- <meta name="robots" content="index, follow">
+- <link rel="canonical" href="[aktuelle URL wenn bekannt, sonst weglassen]">
+
+━━━ KONTAKT-SEKTION (id="kontakt") ━━━
+Enthält IMMER beides nebeneinander (2-Spalten auf Desktop, 1-Spalte Mobile):
+Linke Spalte: Adresse, Telefon, E-Mail, Öffnungszeiten (falls vorhanden)
+Rechte Spalte: Kontaktformular mit:
+  <form> mit Feldern: Name (text), E-Mail (email), Nachricht (textarea, 4 Zeilen), Absenden-Button
+  action="#" method="POST" — kein Backend nötig
+  Felder mit placeholder und required-Attribut
+  Button in Primärfarbe, gleicher Stil wie CTA-Button
+
 ━━━ STRUKTUR ━━━
-1. <head>: Charset, Viewport, Title, Google Fonts Link, <style>
+1. <head>: Charset, Viewport, Title, Google Fonts Link, SEO-Meta-Tags, <style>
 2. <header>: Logo + Firmenname, Nav mit Anchor-Links, Hamburger Mobile — sticky
 3. <main>: Hero zuerst, dann Sektionen aus Bauplan — jede mit class="fade-in"
 4. <footer>: Firmenname, Adresse, Telefon, Copyright — dunkler Hintergrund
