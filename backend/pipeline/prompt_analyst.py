@@ -90,10 +90,10 @@ DESIGN-STILE (wähle passend zur Branche):
     {{
       "typ": "leistungen",
       "titel": "...",
-      "layout": "cards-3 | cards-4 | icon-list | two-column-icons",
+      "layout": "sidebar-tabs",
       "section_bg": "light | white",
       "items": [
-        {{"icon": "emoji", "titel": "...", "beschreibung": "mind. 1 konkreter Satz"}}
+        {{"icon": "lucide-icon-name", "titel": "...", "beschreibung": "2-3 konkrete Sätze"}}
       ]
     }},
     {{
@@ -121,6 +121,11 @@ REGELN:
 - Nur Sektionen einbauen für die genug Kontext da ist
 - Fehlende Angaben (Adresse, Tel, etc.) als null setzen — nie erfinden
 - Falls Bilder vorhanden: Inhalte aus Bildern (Speisekarte, Preise, etc.) in die Leistungen aufnehmen
+- Leistungen icon: Lucide-Icon-Name passend zur Leistung.
+  Verfügbare Icons: phone, mail, map-pin, clock, users, star, shield, heart,
+  home, briefcase, settings, bar-chart, file-text, wrench, camera, zap, award,
+  scissors, truck, coffee, utensils, stethoscope, graduation-cap, leaf, globe,
+  credit-card, package, search, lock, sun, droplets, palette, music, book
 - Antworte NUR mit dem JSON-Objekt"""
 
 

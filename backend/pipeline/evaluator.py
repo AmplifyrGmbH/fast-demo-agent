@@ -107,8 +107,9 @@ BILDER: {bild_hinweis}
 9. Fade-in Animation implementiert? (.fade-in Klasse + IntersectionObserver im JS)
 10. Hero-Headline konkret und einprägsam? (kein generischer Firmenname als Headline)
 11. Card/Element Hover-Effekte vorhanden (transform oder box-shadow)?
-12. Leistungs-Icons visuell prominent (font-size mind. 2rem)?
-13. Design-Stil aus Bauplan erkennbar umgesetzt (bold-modern = grosse Type + Kontrast, etc.)?
+12. Leistungen als Sidebar-Tabs umgesetzt? (.leistungen-wrapper mit .leistungen-nav links und .leistungen-panels rechts)
+13. SVG-Icons in der Leistungen-Navigation vorhanden — keine Emojis?
+14. Design-Stil aus Bauplan erkennbar umgesetzt (bold-modern = grosse Type + Kontrast, etc.)?
 14. Footer vorhanden mit Firmeninfos?
 15. Hero-Sektion sauber? NUR Headline, Subtext, CTA — keine Öffnungszeiten, Kontaktdaten oder anderen Sektionsinhalte im Hero?
 16. Kein Website-Screenshot als Hero-Hintergrundbild verwendet? (Screenshot-URLs enthalten oft "screenshot.jpg" — das ist verboten)

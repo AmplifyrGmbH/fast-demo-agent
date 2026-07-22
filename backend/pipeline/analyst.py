@@ -57,8 +57,8 @@ DESIGN-STILE (wähle den passendsten):
 - nature-organic: Organisch, Erdtöne, runde Formen, nachhaltig-frisch
 - modern-tech: Gradients, präzise Grid, technisch-clean, innovativ
 
-SECTION-LAYOUTS (je nach Inhalt wählen):
-- leistungen layout: "cards-3" | "cards-4" | "icon-list" | "two-column-icons"
+SECTION-LAYOUTS:
+- leistungen layout: IMMER "sidebar-tabs" (Sidebar-Navigation links, Inhalt rechts)
 - ueber_uns layout: "image-left" | "image-right" | "centered-text"
 - team layout: "cards-3" | "cards-4" | "list"
 
@@ -99,10 +99,14 @@ SECTION-HINTERGRÜNDE (für visuelle Abwechslung — nie zweimal dasselbe hinter
     {{
       "typ": "leistungen",
       "titel": "...",
-      "layout": "cards-3 | cards-4 | icon-list | two-column-icons",
-      "section_bg": "light | white | dark",
+      "layout": "sidebar-tabs",
+      "section_bg": "light | white",
       "items": [
-        {{"icon": "emoji", "titel": "...", "beschreibung": "konkrete Beschreibung, mind. 1 Satz"}}
+        {{
+          "icon": "lucide-icon-name",
+          "titel": "...",
+          "beschreibung": "konkrete Beschreibung, 2-3 Sätze"
+        }}
       ]
     }},
     {{
@@ -143,6 +147,11 @@ REGELN:
 - section_bg variieren — nie weiss-weiss oder gleiche Farbe zweimal hintereinander
 - Bilder: Jedes Bild nur einmal verwenden
 - Tagline und Headline: konkret und einprägsam, nicht generisch
+- Leistungen icon: Lucide-Icon-Name wählen der zur Leistung passt.
+  Verfügbare Icons: phone, mail, map-pin, clock, users, star, shield, heart,
+  home, briefcase, settings, bar-chart, file-text, wrench, camera, zap, award,
+  scissors, truck, coffee, utensils, stethoscope, graduation-cap, leaf, globe,
+  credit-card, package, search, lock, sun, droplets, palette, music, book
 - Antworte NUR mit dem JSON-Objekt, kein anderer Text"""
 
 
