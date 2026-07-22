@@ -2,14 +2,15 @@ import asyncio
 import re
 import json
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, UploadFile, File, Form
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from database import get_db
 from models import Build, BuildVersion
-from pipeline.orchestrator import run_full_pipeline, run_refinement
+from pipeline.orchestrator import run_full_pipeline, run_refinement, run_prompt_pipeline
+from services import r2_client
 
 router = APIRouter(prefix="/api/v1/builds", tags=["builds"])
 
@@ -45,6 +46,53 @@ class StartBuildRequest(BaseModel):
 
 class RefineRequest(BaseModel):
     prompt: str
+
+
+@router.post("/start-from-prompt")
+async def start_from_prompt(
+    prompt: str = Form(...),
+    firmenname: str = Form(""),
+    images: list[UploadFile] = File(default=[]),
+    db: AsyncSession = Depends(get_db),
+):
+    base_name = firmenname.strip() or prompt[:40]
+    base_slug = generate_slug(base_name)
+    slug = await unique_slug(base_slug, db)
+
+    build = Build(
+        domain=None,
+        slug=slug,
+        user_prompt=prompt.strip(),
+        build_type="prompt",
+        status="pending",
+    )
+    db.add(build)
+    await db.commit()
+    await db.refresh(build)
+
+    # Bilder direkt nach R2 hochladen
+    uploaded = []
+    for i, file in enumerate(images[:5]):
+        data = await file.read()
+        if not data:
+            continue
+        ext = (file.filename or "").rsplit(".", 1)[-1].lower()
+        if ext not in ("jpg", "jpeg", "png", "webp"):
+            ext = "jpg"
+        content_type = file.content_type or "image/jpeg"
+        r2_key = f"demos/{build.id}/uploads/{i}.{ext}"
+        try:
+            r2_url = r2_client.upload_bytes(data, r2_key, content_type)
+            uploaded.append({"original": file.filename, "r2": r2_url})
+        except Exception:
+            pass
+
+    if uploaded:
+        build.scraped_images = uploaded
+        await db.commit()
+
+    asyncio.create_task(run_prompt_pipeline(build.id))
+    return {"build_id": build.id}
 
 
 @router.post("/start")

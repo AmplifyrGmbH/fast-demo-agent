@@ -11,7 +11,8 @@ class Build(Base):
     __tablename__ = "builds"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    domain: Mapped[str] = mapped_column(String, nullable=False)
+    domain: Mapped[str | None] = mapped_column(String, nullable=True)
+    build_type: Mapped[str] = mapped_column(String, default="domain")
     slug: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
     user_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
 

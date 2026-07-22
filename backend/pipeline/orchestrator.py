@@ -13,6 +13,7 @@ from services import r2_client
 from services.claude_client import call_claude, MODEL_SONNET
 from pipeline.builder import extract_html
 from services.image_search import fetch_hero_image, validate_and_replace_images
+from pipeline.prompt_analyst import run_prompt_analyst
 
 
 async def run_full_pipeline(build_id: int) -> None:
@@ -23,44 +24,61 @@ async def run_full_pipeline(build_id: int) -> None:
 
             await scrape_domain(build.domain, build_id, db)
             plan = await run_analyst(build_id, db)
+            await _run_build_steps(build_id, plan, db)
 
-            # Hero-Bild + Content-Bilder parallel prüfen/besorgen
-            result = await db.execute(select(Build).where(Build.id == build_id))
-            build = result.scalar_one()
-            build.status_detail = "Bilder prüfen und optimieren..."
-            await db.commit()
+        except Exception as e:
+            async with AsyncSessionLocal() as err_db:
+                err_result = await err_db.execute(select(Build).where(Build.id == build_id))
+                err_build = err_result.scalar_one()
+                err_build.status = "error"
+                err_build.error_log = str(e)
+                await err_db.commit()
 
-            hero = next((s for s in plan.get("sektionen", []) if s.get("typ") == "hero"), None)
-            needs_hero = hero and not hero.get("bild_url")
-            scraped_images = build.scraped_images or []
 
-            hero_task = fetch_hero_image(plan, build_id) if needs_hero else asyncio.sleep(0)
-            content_task = validate_and_replace_images(plan, scraped_images, build_id)
+async def _run_build_steps(build_id: int, plan: dict, db) -> None:
+    """Gemeinsame Build-Schritte nach dem Analyst (für beide Pipeline-Varianten)."""
+    result = await db.execute(select(Build).where(Build.id == build_id))
+    build = result.scalar_one()
+    build.status_detail = "Bilder prüfen und optimieren..."
+    await db.commit()
 
-            hero_result, plan = await asyncio.gather(hero_task, content_task)
+    hero = next((s for s in plan.get("sektionen", []) if s.get("typ") == "hero"), None)
+    needs_hero = hero and not hero.get("bild_url")
+    scraped_images = build.scraped_images or []
 
-            if needs_hero and hero_result:
-                hero["bild_url"] = hero_result
-                hero["hintergrund"] = "bild"
+    hero_task = fetch_hero_image(plan, build_id) if needs_hero else asyncio.sleep(0)
+    content_task = validate_and_replace_images(plan, scraped_images, build_id)
+    hero_result, plan = await asyncio.gather(hero_task, content_task)
 
-            build.plan = plan
-            await db.commit()
+    if needs_hero and hero_result:
+        hero["bild_url"] = hero_result
+        hero["hintergrund"] = "bild"
 
-            html = await run_builder(build_id, db)
+    build.plan = plan
+    await db.commit()
 
-            for round_num in range(2):
-                eval_result = await run_evaluator(build_id, html, db)
-                if eval_result.get("ok"):
-                    break
-                fixes = "\n".join(eval_result.get("fixes", []))
-                result = await db.execute(select(Build).where(Build.id == build_id))
-                build = result.scalar_one()
-                build.status_detail = f"Evaluator: {round_num + 1}. Korrektur-Runde"
-                await db.commit()
-                html = await run_builder(build_id, db, fix_instructions=fixes)
+    html = await run_builder(build_id, db)
 
-            await deploy(build_id, html, db)
+    for round_num in range(2):
+        eval_result = await run_evaluator(build_id, html, db)
+        if eval_result.get("ok"):
+            break
+        fixes = "\n".join(eval_result.get("fixes", []))
+        result = await db.execute(select(Build).where(Build.id == build_id))
+        build = result.scalar_one()
+        build.status_detail = f"Evaluator: {round_num + 1}. Korrektur-Runde"
+        await db.commit()
+        html = await run_builder(build_id, db, fix_instructions=fixes)
 
+    await deploy(build_id, html, db)
+
+
+async def run_prompt_pipeline(build_id: int) -> None:
+    """Pipeline für Builds ohne Domain — nur Prompt + optionale Bilder."""
+    async with AsyncSessionLocal() as db:
+        try:
+            plan = await run_prompt_analyst(build_id, db)
+            await _run_build_steps(build_id, plan, db)
         except Exception as e:
             async with AsyncSessionLocal() as err_db:
                 err_result = await err_db.execute(select(Build).where(Build.id == build_id))
