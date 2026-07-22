@@ -55,14 +55,17 @@ async def start_from_prompt(
     images: list[UploadFile] = File(default=[]),
     db: AsyncSession = Depends(get_db),
 ):
-    base_name = firmenname.strip() or prompt[:40]
+    firmenname = firmenname.strip()
+    base_name = firmenname or prompt[:40]
     base_slug = generate_slug(base_name)
     slug = await unique_slug(base_slug, db)
+
+    full_prompt = f"Firmenname: {firmenname}\n\n{prompt.strip()}" if firmenname else prompt.strip()
 
     build = Build(
         domain=None,
         slug=slug,
-        user_prompt=prompt.strip(),
+        user_prompt=full_prompt,
         build_type="prompt",
         status="pending",
     )
