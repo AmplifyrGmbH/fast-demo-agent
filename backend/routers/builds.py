@@ -127,6 +127,7 @@ async def list_builds(db: AsyncSession = Depends(get_db)):
             "id": b.id,
             "domain": b.domain,
             "slug": b.slug,
+            "build_type": b.build_type,
             "status": b.status,
             "current_version": b.current_version,
             "public_url": b.public_url,

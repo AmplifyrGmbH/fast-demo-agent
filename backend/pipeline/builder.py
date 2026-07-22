@@ -138,7 +138,7 @@ HTML-Struktur:
                stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
             [icon-pfad aus obiger Liste]
           </svg>
-          [item.titel]
+          <span>[item.titel]</span>
         </li>
       </ul>
       <div class="leistungen-panels">
@@ -173,8 +173,8 @@ CSS für Sidebar-Tabs:
   .leistungen-nav {{ display:flex; overflow-x:auto; border-right:none;
     border-bottom:1px solid #e5e7eb; padding:4px; gap:2px; }}
   .leistungen-nav li {{ border-left:none; border-bottom:3px solid transparent;
-    white-space:nowrap; padding:10px 14px; flex-direction:column; gap:4px;
-    font-size:.75rem; text-align:center; border-radius:6px; }}
+    padding:10px 14px; flex-shrink:0; justify-content:center; border-radius:6px; }}
+  .leistungen-nav li span {{ display:none; }}
   .leistungen-nav li.active {{ border-bottom-color:[primary_color]; border-left-color:transparent; }}
   .leistungen-panels {{ padding:24px 16px; }}
 }}
